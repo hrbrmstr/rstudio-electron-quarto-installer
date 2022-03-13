@@ -45,7 +45,6 @@ Beginning RStudio installation
   - Unmounting DMG
 RStudio installation complete
 
-
 Beginning Quarto installation
   - Retrieving macOS Quarto (latest) metadata
   - Retrieving Quarto pkg
