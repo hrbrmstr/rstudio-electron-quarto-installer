@@ -18,22 +18,19 @@ Quarto and RStudio are joined at the hip and one often has to update a local Qua
 
 ## NOTE
 
-There is (for now) minimal error condition checking and the script itself is somewhat rude and wasteful in that:
-
-- it doesn't check if any local Quarto and RStudio installs are at the latest already
-- it doesn't use any existing files in `~/Downloads` if they exist (so bandwidth is potentially wasted)
-- it quits running RStudio instances without asking
-- it expects you to delete RStudio.app from the Trash before running the script again
-- it can clobber stuff in `/tmp` if similarly named files already exist
-
-I may make it less brutish, but it does what I need it to do in current form.
+- It will check if any local Quarto and RStudio installs are at the latest already.
+- It will also check if the DMG and/or pkg files are already downloaded
+- It quits running RStudio instances without asking
+- It can clobber stuff in `/tmp` if similarly named files already exist
+- The script still lacks _some_ error checking.
 
 ## Usage
 
 ```bash
 $ rstudio-quarto-daily.zsh
 Installing latest macOS RStudio (electron) and latest Quarto
-You will be prompted at least once for your password for operations that require the use of 'sudo'
+
+NOTE: You may be prompted at least once for your password for operations that require the use of 'sudo'
 
 Beginning RStudio installation
   - Retrieving macOS RStudio (electron) daily metadata
@@ -43,7 +40,6 @@ Beginning RStudio installation
   - Moving existing RStudio install to the Trash
   - Installing RStudio.app (2022.06.0-daily+208)
   - Unmounting DMG
-RStudio installation complete
 
 Beginning Quarto installation
   - Retrieving macOS Quarto (latest) metadata
@@ -52,5 +48,4 @@ Beginning Quarto installation
 installer: Package name is Quarto
 installer: Upgrading at base path /
 installer: The upgrade was successful.
-Quarto installation complete
 ```
