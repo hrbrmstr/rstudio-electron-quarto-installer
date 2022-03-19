@@ -6,7 +6,8 @@
 # - author: @hrbrmstr
 
 echo "Installing latest macOS RStudio (electron) and latest Quarto"
-echo "You will be prompted at least once for your password for operations that require the use of 'sudo'"
+echo
+echo "NOTE: You may be prompted at least once for your password for operations that require the use of 'sudo'"
 echo 
 echo "Beginning RStudio installation"
 
@@ -19,38 +20,64 @@ DMG=$(grep link /tmp/index.json | sed -e 's/^.*h/h/' -e 's/".*$//')
 FIL=$(grep filename /tmp/index.json | sed -e 's/^.*R/R/' -e 's/".*$//')
 VER=$(grep version /tmp/index.json | sed -e 's/^.*: "2/2/' -e 's/".*$//')
 
-# Get the latest DMG
-echo "  - Retrieving DMG"
-curl --silent -o ~/Downloads/${FIL} $DMG
+if [[ -f "${HOME}/Downloads/${FIL}" ]] ; then # Already have it
+  echo "  - Found DMG in Downloads folder"
+else # Get the latest DMG
+  echo "  - Retrieving DMG"
+  curl --silent -o "${HOME}/Downloads/${FIL}" $DMG
+fi
 
 # Attach it and get the mount into
 echo "  - Attaching DMG"
-hdiutil attach -plist ~/Downloads/${FIL} > /tmp/rs.plist
+hdiutil attach -plist "${HOME}/Downloads/${FIL}" > /tmp/rs.plist
 
 # Find the volume
-VOL=$(plutil -extract "system-entities.1.mount-point" raw -expect string -o - /tmp/rs.plist)
-
-# Quit all running instances of RStudio
-echo "  - Quitting running instances of RStudio (if any)"
-ps -ef | grep "/Applications/RStudio.app/Contents/MacOS/RStudio" | grep -v grep | while read APP ; do osascript -e 'quit app "RStudio"' ; sleep 5 ; done
-
-# Move existing RStudio to the Trash
-if [[ -d "/Applications/RStudio.app" ]]; then
-  echo "  - Moving existing RStudio install to the Trash"
-  mv /Applications/RStudio.app ~/.Trash
+if ($(plutil -extract "system-entities.1.mount-point" raw -expect string -o /dev/null /tmp/rs.plist > /dev/null 2>&1)); then
+  VOL=$(plutil -extract "system-entities.1.mount-point" raw -expect string -o - /tmp/rs.plist)
 fi
 
-cp -R ${VOL}/RStudio.app /Applications
+if ($(plutil -extract "system-entities.2.mount-point" raw -expect string -o /dev/null /tmp/rs.plist > /dev/null 2>&1)); then
+  VOL=$(plutil -extract "system-entities.2.mount-point" raw -expect string -o - /tmp/rs.plist)
+fi
 
-# Remove quarantine flag (if present)
-echo "  - Installing RStudio.app (${VER})"
-sudo xattr -r -d com.apple.quarantine /Applications/RStudio.app
+if ($(plutil -extract "system-entities.3.mount-point" raw -expect string -o /dev/null /tmp/rs.plist > /dev/null 2>&1)); then
+  VOL=$(plutil -extract "system-entities.3.mount-point" raw -expect string -o - /tmp/rs.plist)
+fi
+
+if ($(plutil -extract "system-entities.4.mount-point" raw -expect string -o /dev/null /tmp/rs.plist > /dev/null 2>&1)); then
+  VOL=$(plutil -extract "system-entities.4.mount-point" raw -expect string -o - /tmp/rs.plist)
+fi
+
+diff /Applications/RStudio.app/Contents/Info.plist ${VOL}/RStudio.app/Contents/Info.plist > /dev/null 2>&1
+INSTALLED=$?
+
+if [[ $INSTALLED -ne 0 ]]; then
+
+  # Quit all running instances of RStudio
+  echo "  - Quitting running instances of RStudio (if any)"
+  ps -ef | grep "/Applications/RStudio.app/Contents/MacOS/RStudio" | grep -v grep | while read APP ; do osascript -e 'quit app "RStudio"' ; sleep 5 ; done
+
+  # Move existing RStudio to the Trash
+  if [[ -d "/Applications/RStudio.app" ]]; then
+    echo "  - Moving existing RStudio install to the Trash"
+    UUID=$(uuidgen)
+    mv /Applications/RStudio.app ${HOME}/.Trash/RStudio-${UUID}.app
+  fi
+
+  cp -R ${VOL}/RStudio.app /Applications
+
+  # Remove quarantine flag (if present)
+  echo "  - Installing RStudio.app (${VER})"
+  sudo xattr -r -d com.apple.quarantine /Applications/RStudio.app
+
+else 
+  echo "  - Existing RStudio version is latest daily."
+fi
 
 # Unmount RStudio DMG
 echo "  - Unmounting DMG"
 hdiutil detach -quiet ${VOL}
 
-echo "RStudio installation complete"
 echo
 echo "Beginning Quarto installation"
 
@@ -62,11 +89,29 @@ curl --silent -H "Accept: application/vnd.github.v3+json" https://api.github.com
 PKG=$(grep "http.*macos.pkg" /tmp/quarto.json | sed -e 's/^.*htt/htt/' -e 's/".*$//')
 FIL=$(grep "name.*macos.pkg" /tmp/quarto.json | sed -e 's/^.*q/q/' -e 's/".*$//')
 
-# Get the latest PKG
-echo "  - Retrieving Quarto pkg"
-curl --silent -L -o ~/Downloads/${FIL} $PKG
+if [[ -f "${HOME}/Downloads/${FIL}" ]] ; then
+  # Already have it
+  echo "  - Found Quarto pkg in Downloads folder"
+else
+  # Get the latest PKG
+  echo "  - Retrieving Quarto pkg"
+  curl --silent -L -o ${HOME}/Downloads/${FIL} $PKG
+fi
 
-# Install it
-echo "  - Installing Quarto"
-sudo installer -pkg ~/Downloads/${FIL} -target /
-echo "Quarto installation complete"
+INSTALL_QUARTO="true"
+if [[ -f "/usr/local/bin/quarto" ]] ; then
+  # Comapre versions
+  PKG_VER=$(echo $(basename ${HOME}/Downloads/${FIL}) | sed -e 's/^quarto-//' -e 's/-mac.*$//')
+  INST_VER=$(/usr/local/bin/quarto --version)
+  if [[ "${PKG_VER}" == "${INST_VER}" ]]; then
+    echo "  - Existing Quarto version is the latest."
+    INSTALL_QUARTO="false"
+  fi
+fi
+
+if [[ "${INSTALL_QUARTO}" == "true" ]]; then
+  # Install it
+  echo "  - Installing Quarto"
+  sudo installer -pkg ~/Downloads/${FIL} -target /
+  echo "Quarto installation complete"
+fi
