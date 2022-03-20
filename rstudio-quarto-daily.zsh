@@ -2,13 +2,33 @@
 
 # - script: rstudio-quarto-daily.zsh
 # - description: ZSH script to download and install the latest RStudio (electron) daily along with the latest Quarto relase
-# - version: 0.2.0
+# - version: 0.3.0
 # - author: @hrbrmstr
 
 echo "Installing latest macOS RStudio (electron) and latest Quarto"
 echo
 echo "NOTE: You may be prompted at least once for your password for operations that require the use of 'sudo'"
 echo 
+echo "Checking if it's OK to install the Electron version of RStudio…"
+echo
+
+ARCH=$(arch)
+if [[ "arm64" == "${ARCH}" ]]; then
+  HAS_QMD_OPEN=$(grep -c -d recurse qmd ${HOME}/.local/share/rstudio | grep -c -v "0$")
+  if [[ ${HAS_QMD_OPEN} -gt 0 ]]; then
+    echo "OPEN QMD FILES DETECTED."
+    echo 
+    echo "RStudio Electron (on Apple Silicon) presently has issues with QMD files."
+    echo 
+    echo "Please see:"
+    echo "  <https://github.com/hrbrmstr/rstudio-electron-quarto-installer/issues/2>"
+    echo "on how to reset your RStudio desktop state."
+    echo 
+    echo "Then try using this utility again."
+    exit 0
+  fi
+fi
+
 echo "Beginning RStudio installation"
 
 # Get metadata for the latest Electron for macOS
