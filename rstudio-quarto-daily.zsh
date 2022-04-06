@@ -2,13 +2,23 @@
 
 # - script: rstudio-quarto-daily.zsh
 # - description: ZSH script to download and install the latest RStudio (electron) daily along with the latest Quarto relase
-# - version: 0.3.0
+# - version: 0.4.0
 # - author: @hrbrmstr
 
 echo "Installing latest macOS RStudio (electron) and latest Quarto"
 echo
 echo "NOTE: You may be prompted at least once for your password for operations that require the use of 'sudo'"
 echo 
+echo "Checking for 'jq' binary…"
+
+JQ_BIN=$(whence jq)
+
+if [[ "" == "${JQ_BIN}" ]]; then
+  echo "'jq' is required. Please install it and try again. Homebrew users can 'brew install jq'"
+  exit
+fi 
+
+echo
 echo "Checking if it's OK to install the Electron version of RStudio…"
 echo
 
@@ -33,12 +43,12 @@ echo "Beginning RStudio installation"
 
 # Get metadata for the latest Electron for macOS
 echo "  - Retrieving macOS RStudio (electron) daily metadata"
-curl --silent https://dailies.rstudio.com/rstudio/spotted-wakerobin/electron/macos/index.json -o /tmp/index.json
+curl --silent https://dailies.rstudio.com/rstudio/spotted-wakerobin/index.json -o /tmp/index.json
 
 # Get the DMG URL and name
-DMG=$(grep link /tmp/index.json | sed -e 's/^.*h/h/' -e 's/".*$//')
-FIL=$(grep filename /tmp/index.json | sed -e 's/^.*R/R/' -e 's/".*$//')
-VER=$(grep version /tmp/index.json | sed -e 's/^.*: "2/2/' -e 's/".*$//')
+DMG=$(cat /tmp/index.json | $JQ_BIN -r .electron.platforms.macos.link)
+FIL=$(cat /tmp/index.json | $JQ_BIN -r .electron.platforms.macos.filename)
+VER=$(cat /tmp/index.json | $JQ_BIN -r .electron.platforms.macos.version)
 
 if [[ -f "${HOME}/Downloads/${FIL}" ]] ; then # Already have it
   echo "  - Found DMG in Downloads folder"
