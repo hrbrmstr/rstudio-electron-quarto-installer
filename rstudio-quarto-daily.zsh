@@ -2,7 +2,7 @@
 
 # - script: rstudio-quarto-daily.zsh
 # - description: ZSH script to download and install the latest RStudio (electron) daily along with the latest Quarto relase
-# - version: 0.4.0
+# - version: 0.4.1
 # - author: @hrbrmstr
 
 echo "Installing latest macOS RStudio (electron) and latest Quarto"
@@ -78,7 +78,7 @@ if ($(plutil -extract "system-entities.4.mount-point" raw -expect string -o /dev
   VOL=$(plutil -extract "system-entities.4.mount-point" raw -expect string -o - /tmp/rs.plist)
 fi
 
-diff /Applications/RStudio.app/Contents/Info.plist ${VOL}/RStudio.app/Contents/Info.plist > /dev/null 2>&1
+diff "/Applications/RStudio.app/Contents/Info.plist" "${VOL}/RStudio.app/Contents/Info.plist" > /dev/null 2>&1
 INSTALLED=$?
 
 if [[ $INSTALLED -ne 0 ]]; then
@@ -94,11 +94,11 @@ if [[ $INSTALLED -ne 0 ]]; then
     mv /Applications/RStudio.app ${HOME}/.Trash/RStudio-${UUID}.app
   fi
 
-  cp -R ${VOL}/RStudio.app /Applications
+  cp -R "${VOL}/RStudio.app" /Applications
 
   # Remove quarantine flag (if present)
   echo "  - Installing RStudio.app (${VER})"
-  sudo xattr -r -d com.apple.quarantine /Applications/RStudio.app
+  sudo xattr -r -d com.apple.quarantine "/Applications/RStudio.app"
 
 else 
   echo "  - Existing RStudio version is latest daily."
@@ -106,7 +106,7 @@ fi
 
 # Unmount RStudio DMG
 echo "  - Unmounting DMG"
-hdiutil detach -quiet ${VOL}
+hdiutil detach -quiet "${VOL}"
 
 echo
 echo "Beginning Quarto installation"
@@ -131,7 +131,7 @@ fi
 INSTALL_QUARTO="true"
 if [[ -f "/usr/local/bin/quarto" ]] ; then
   # Comapre versions
-  PKG_VER=$(echo $(basename ${HOME}/Downloads/${FIL}) | sed -e 's/^quarto-//' -e 's/-mac.*$//')
+  PKG_VER=$(echo $(basename "${HOME}/Downloads/${FIL}") | sed -e 's/^quarto-//' -e 's/-mac.*$//')
   INST_VER=$(/usr/local/bin/quarto --version)
   if [[ "${PKG_VER}" == "${INST_VER}" ]]; then
     echo "  - Existing Quarto version is the latest."
@@ -142,6 +142,6 @@ fi
 if [[ "${INSTALL_QUARTO}" == "true" ]]; then
   # Install it
   echo "  - Installing Quarto"
-  sudo installer -pkg ~/Downloads/${FIL} -target /
+  sudo installer -pkg "${HOME}/Downloads/${FIL}" -target /
   echo "Quarto installation complete"
 fi
