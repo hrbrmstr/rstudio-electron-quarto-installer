@@ -2,7 +2,7 @@
 
 # - script: rstudio-quarto-daily.zsh
 # - description: ZSH script to download and install the latest RStudio (electron) daily along with the latest Quarto relase
-# - version: 0.4.1
+# - version: 0.4.2
 # - author: @hrbrmstr
 
 echo "Installing latest macOS RStudio (electron) and latest Quarto"
@@ -85,7 +85,7 @@ if [[ $INSTALLED -ne 0 ]]; then
 
   # Quit all running instances of RStudio
   echo "  - Quitting running instances of RStudio (if any)"
-  ps -ef | grep "/Applications/RStudio.app/Contents/MacOS/RStudio" | grep -v grep | while read APP ; do osascript -e 'quit app "RStudio"' ; sleep 5 ; done
+  ps -ef | grep -i "/Applications/RStudio.app/Contents/MacOS/RStudio" | grep -v grep | while read APP ; do osascript -e 'quit app "RStudio"' ; sleep 5 ; done
 
   # Move existing RStudio to the Trash
   if [[ -d "/Applications/RStudio.app" ]]; then
