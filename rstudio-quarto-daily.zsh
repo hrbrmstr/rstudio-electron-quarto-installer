@@ -125,7 +125,7 @@ if [[ -f "${HOME}/Downloads/${FIL}" ]] ; then
 else
   # Get the latest PKG
   echo "  - Retrieving Quarto pkg"
-  curl -L -o ${HOME}/Downloads/${FIL} $PKG
+  curl -# -o ${HOME}/Downloads/${FIL} $PKG
 fi
 
 INSTALL_QUARTO="true"
