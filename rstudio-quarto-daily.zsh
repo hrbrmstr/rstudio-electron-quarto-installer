@@ -2,8 +2,22 @@
 
 # - script: rstudio-quarto-daily.zsh
 # - description: ZSH script to download and install the latest RStudio (electron) daily along with the latest Quarto relase
-# - version: 0.5.0
+# - version: 0.6.0
 # - author: @hrbrmstr
+
+# In case downloads are interrupted, clean up the partial downloads
+trap cleanup INT
+
+CLEANUP_RSTUDIO=""
+DETATCH_RSTUDIO=""
+CLEANUP_QUARTO=""
+
+function cleanup() {
+  echo "** Trapped CTRL-C"
+  if [ "${CLEANUP_RSTUDIO}" != ""] ; then rm -f "${CLEANUP_RSTUDIO}" ; fi
+  if [ "${DETATCH_RSTUDIO}" != ""] ; then hdiutil detach -quiet "${DETATCH_RSTUDIO}" ; fi
+  if [ "${CLEANUP_QUARTO}" != ""] ; then rm -f "${CLEANUP_QUARTO}" ; fi
+}
 
 echo "Installing latest macOS RStudio (electron) and latest Quarto"
 echo
@@ -54,8 +68,11 @@ if [[ -f "${HOME}/Downloads/${FIL}" ]] ; then # Already have it
   echo "  - Found DMG in Downloads folder"
 else # Get the latest DMG
   echo "  - Retrieving DMG"
+  CLEANUP_RSTUDIO="${HOME}/Downloads/${FIL}"
   curl -# -o "${HOME}/Downloads/${FIL}" $DMG
 fi
+
+CLEANUP_RSTUDIO=""
 
 # Attach it and get the mount into
 echo "  - Attaching DMG"
@@ -77,6 +94,8 @@ fi
 if ($(plutil -extract "system-entities.4.mount-point" raw -expect string -o /dev/null /tmp/rs.plist > /dev/null 2>&1)); then
   VOL=$(plutil -extract "system-entities.4.mount-point" raw -expect string -o - /tmp/rs.plist)
 fi
+
+DETATCH_RSTUDIO="${VOL}"
 
 diff "/Applications/RStudio.app/Contents/Info.plist" "${VOL}/RStudio.app/Contents/Info.plist" > /dev/null 2>&1
 INSTALLED=$?
@@ -108,6 +127,8 @@ fi
 echo "  - Unmounting DMG"
 hdiutil detach -quiet "${VOL}"
 
+DETATCH_RSTUDIO=""
+
 echo
 echo "Beginning Quarto installation"
 
@@ -123,10 +144,13 @@ if [[ -f "${HOME}/Downloads/${FIL}" ]] ; then
   # Already have it
   echo "  - Found Quarto pkg in Downloads folder"
 else
+  CLEANUP_QUARTO="${HOME}/Downloads/${FIL}"
   # Get the latest PKG
   echo "  - Retrieving Quarto pkg"
-  curl -# -o ${HOME}/Downloads/${FIL} $PKG
+  curl -# -L -o ${HOME}/Downloads/${FIL} $PKG
 fi
+
+CLEANUP_QUARTO=""
 
 INSTALL_QUARTO="true"
 if [[ -f "/usr/local/bin/quarto" ]] ; then
@@ -145,3 +169,5 @@ if [[ "${INSTALL_QUARTO}" == "true" ]]; then
   sudo installer -pkg "${HOME}/Downloads/${FIL}" -target /
   echo "Quarto installation complete"
 fi
+
+rm -f /tmp/rs.plist /tmp/quarto.json
