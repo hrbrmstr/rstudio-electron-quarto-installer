@@ -2,7 +2,7 @@
 
 # - script: rstudio-quarto-daily.zsh
 # - description: ZSH script to download and install the latest RStudio (electron) daily along with the latest Quarto relase
-# - version: 0.4.2
+# - version: 0.5.0
 # - author: @hrbrmstr
 
 echo "Installing latest macOS RStudio (electron) and latest Quarto"
@@ -54,7 +54,7 @@ if [[ -f "${HOME}/Downloads/${FIL}" ]] ; then # Already have it
   echo "  - Found DMG in Downloads folder"
 else # Get the latest DMG
   echo "  - Retrieving DMG"
-  curl --silent -o "${HOME}/Downloads/${FIL}" $DMG
+  curl -# -o "${HOME}/Downloads/${FIL}" $DMG
 fi
 
 # Attach it and get the mount into
@@ -125,7 +125,7 @@ if [[ -f "${HOME}/Downloads/${FIL}" ]] ; then
 else
   # Get the latest PKG
   echo "  - Retrieving Quarto pkg"
-  curl --silent -L -o ${HOME}/Downloads/${FIL} $PKG
+  curl -L -o ${HOME}/Downloads/${FIL} $PKG
 fi
 
 INSTALL_QUARTO="true"
