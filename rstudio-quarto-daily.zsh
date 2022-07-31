@@ -2,7 +2,7 @@
 
 # - script: rstudio-quarto-daily.zsh
 # - description: ZSH script to download and install the latest RStudio (electron) daily along with the latest Quarto relase
-# - version: 0.6.0
+# - version: 0.7.0
 # - author: @hrbrmstr
 
 # In case downloads are interrupted, clean up the partial downloads
@@ -31,27 +31,6 @@ if [[ "" == "${JQ_BIN}" ]]; then
   echo "'jq' is required. Please install it and try again. Homebrew users can 'brew install jq'"
   exit
 fi 
-
-echo
-echo "Checking if it's OK to install the Electron version of RStudio…"
-echo
-
-ARCH=$(arch)
-if [[ "arm64" == "${ARCH}" ]]; then
-  HAS_QMD_OPEN=$(grep -c -d recurse qmd ${HOME}/.local/share/rstudio | grep -c -v "0$")
-  if [[ ${HAS_QMD_OPEN} -gt 0 ]]; then
-    echo "OPEN QMD FILES DETECTED."
-    echo 
-    echo "RStudio Electron (on Apple Silicon) presently has issues with QMD files."
-    echo 
-    echo "Please see:"
-    echo "  <https://github.com/hrbrmstr/rstudio-electron-quarto-installer/issues/2>"
-    echo "on how to reset your RStudio desktop state."
-    echo 
-    echo "Then try using this utility again."
-    exit 0
-  fi
-fi
 
 echo "Beginning RStudio installation"
 

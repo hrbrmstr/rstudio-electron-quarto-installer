@@ -16,12 +16,6 @@ Quarto and RStudio are joined at the hip and one often has to update a local Qua
 - Move it to a place on your `$PATH`
 - Ensure it is executable (i.e. `chmod 755 /path/tp/rstudio-quarto-daily.zsh`)
 
-## WARNING
-
-Via [this issue](https://github.com/hrbrmstr/rstudio-electron-quarto-installer/issues/2), Apple Silicion RStudio Electron hates `qmd` files.
-
-If `qmd` files are detected as being open in your RStudio session, you will be prompted to reset your RStudio Desktop state before the script will attempt to install RStudio Electron.
-
 ## NOTE
 
 - It will check if any local Quarto and RStudio installs are at the latest already.
