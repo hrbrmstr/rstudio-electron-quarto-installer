@@ -1,8 +1,8 @@
 #!/bin/zsh
 
 # - script: rstudio-quarto-daily.zsh
-# - description: ZSH script to download and install the latest RStudio (electron) daily along with the latest Quarto relase
-# - version: 0.7.0
+# - description: ZSH script to download and install the latest RStudio (electron) daily along with the latest Quarto pre-relase
+# - version: 0.8.0
 # - author: @hrbrmstr
 
 # In case downloads are interrupted, clean up the partial downloads
@@ -111,13 +111,20 @@ DETATCH_RSTUDIO=""
 echo
 echo "Beginning Quarto installation"
 
-# Get latest Quarto metadata
-echo "  - Retrieving macOS Quarto (latest) metadata"
-curl --silent -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/quarto-dev/quarto-cli/releases/latest -o /tmp/quarto.json
+# Get latest pre-release Quarto metadata
+curl --silent https://quarto.org/docs/download/_prerelease.json > /tmp/quarto.json
 
 # Get Quarto URL and name
-PKG=$(grep "http.*macos.pkg" /tmp/quarto.json | sed -e 's/^.*htt/htt/' -e 's/".*$//')
-FIL=$(grep "name.*macos.pkg" /tmp/quarto.json | sed -e 's/^.*q/q/' -e 's/".*$//')
+PKG=$(cat /tmp/quarto.json | jq -r '.assets[] | select(.download_url|test("macos.pkg")) | .download_url')
+FIL=$(basename ${PKG})
+
+# Get latest Quarto metadata
+#echo "  - Retrieving macOS Quarto (latest) metadata"
+#curl --silent -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/quarto-dev/quarto-cli/releases/latest -o /tmp/quarto.json
+
+# Get Quarto URL and name
+#PKG=$(grep "http.*macos.pkg" /tmp/quarto.json | sed -e 's/^.*htt/htt/' -e 's/".*$//')
+#FIL=$(grep "name.*macos.pkg" /tmp/quarto.json | sed -e 's/^.*q/q/' -e 's/".*$//')
 
 if [[ -f "${HOME}/Downloads/${FIL}" ]] ; then
   # Already have it
